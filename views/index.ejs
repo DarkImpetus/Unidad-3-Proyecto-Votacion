@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Proyecto 3: Votaciones con sockets</title>
+    <br> <br> <br>
+  
+    <h1 style=" background-color:rgb(129, 55, 12); color: black;">Chocolate Paradise</h1>
+    <meta name="description" content="voting using Node.js">
+    <meta name="author" content="automatas">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type ="text/javascript">
+        $(document).ready(function (){
+            // this triggers the connection event in our server!
+            var socket = io.connect('172.16.0.133:8081',{ 'forceNew': true });
+            // we'll write all the socket stuff after the above line!
+
+
+            socket.on('server_response', function (data){
+                console.log('El servidor dice: ' + data.response);
+            });
+
+            var votedBefore = false;
+
+            var all_votes;
+            var yes_votes;
+            var no_votes;
+
+
+            $('#voteButton').click(function() {
+              if ($('#yesButton').is(':checked')) { 
+                console.log('Votando SI en el servidor'); 
+                if (!votedBefore){
+                  votedBefore = true;
+                  socket.emit("vote", {newVote: "newYes"});
+                } else {
+                  socket.emit("vote", {newVote: "changeToYes"});
+                }
+              } else if($('#noButton').is(':checked')) {
+                console.log('Votando No en el servidor'); 
+                if (!votedBefore){
+                  votedBefore = true;
+                  socket.emit("vote", {newVote: "newNo"});
+                } else {
+                  socket.emit("vote", {newVote: "changeToNo"});
+                }
+              }
+            });
+
+            socket.on('sum_yesVotes', function(data){
+              console.log('total de SI votos: '+ data.response);
+               $('#showYesses').html(JSON.stringify(data.response));
+               yes_votes = JSON.stringify(data.response);
+              return yes_votes;
+            });
+
+            socket.on('sum_noVotes', function(data){
+              console.log('total de No votos: '+ JSON.stringify(data.response));
+              $('#showNos').html(JSON.stringify(data.response));
+              no_votes = JSON.stringify(data.response);
+              return no_votes;
+            });
+
+            socket.on('sum_all', function(data){
+              console.log('total de votos: '+ JSON.stringify(data.response));
+              all_votes = JSON.stringify(data.response);
+              return all_votes;
+            });
+        })
+    </script>
+</head>
+<body>
+  <div id="results"></div>
+  <h3>VOTACIONES ÚNICAS CON SOCKETS</h3>
+	<h2>¿Qué tipo de chocolate prefieres?</h2>
+      <form style="background-color:rgb(129, 55, 12);" class="button-position" id="voteButton"><br/>
+            <p style="background-color:rgb(129, 55, 12);"> <strong>Opciones</strong> </p>
+            <input style="background-color:rgb(129, 55, 12);" type="radio" name="vote" value="yes" id="yesButton"> Con leche <br style="background-color:rgb(129, 55, 12);">
+            <input style="background-color:rgb(129, 55, 12);" type="radio" name="vote" value="no" id="noButton"> Amargo <br />
+      <p style="background-color:rgb(129, 55, 12)"> <strong>Resultados</strong> </p>
+      <p style="background-color:rgb(129, 55, 12);">Votantes "Con leche": <span id="showYesses"></span> </p> 
+      <p style="background-color:rgb(129, 55, 12);"> Votantes "Amargo": <span id="showNos"></span></p><br/>
+      </form>
+  <footer><strong> .</strong></footer>
+</body>
+</html>
